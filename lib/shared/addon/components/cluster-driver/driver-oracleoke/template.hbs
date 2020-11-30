@@ -10,76 +10,25 @@
   }}
 
     <div class="row">
-      <div class="col span-6">
-        <label class="acc-label">
-          {{t 'clusterNew.oracleoke.tenancyOCID.label'}}{{field-required}}
-        </label>
-        {{#input-or-display editable=isNew value=config.tenancyId}}
-          {{input type="text" name="tenancy" classNames="form-control" placeholder=(t 'clusterNew.oracleoke.tenancyOCID.placeholder') value=config.tenancyId}}
-        {{/input-or-display}}
+      <div class="row">
+        <FormAuthCloudCredential
+          @cancel={{action "close"}}
+            @cloudCredentialKey="okeEngineConfig.ociCredentialSecret"
+          @cloudCredentials={{cloudCredentials}}
+            @createLabel="clusterNew.amazoneks.access.next"
+          @driverName="oraclecontainerengine"
+          @parseAndCollectErrors={{action (mut errors)}}
+            @finishAndSelectCloudCredential={{action
+          "finishAndSelectCloudCredential"
+        }}
+          @primaryResource={{primaryResource}}
+          @progressStep={{action "authenticateOCI"}}
+          @hideSave={{true}}
+        />
       </div>
-
-
-      <div class="col span-6">
-        <label class="acc-label">
-          {{t 'clusterNew.oracleoke.compartmentOCID.label'}}{{field-required}}
-        </label>
-        {{#input-or-display editable=isNew value=config.compartmentId}}
-          {{input type="text" name="compartment" classNames="form-control" placeholder=(t 'clusterNew.oracleoke.compartmentOCID.placeholder') value=config.compartmentId}}
-        {{/input-or-display}}
-      </div>
-
     </div>
 
-    {{!-- Allow edits to user details for both new and existing cluster --}}
-    <div class="row">
 
-      <div class="col span-6">
-        <label class="acc-label">
-          {{t 'clusterNew.oracleoke.userOcid.label'}}{{field-required}}
-        </label>
-        {{#input-or-display editable=(or isNew editing) value=config.userOcid}}
-          {{input type="text" name="username" classNames="form-control" placeholder=(t 'clusterNew.oracleoke.userOcid.placeholder') value=config.userOcid}}
-        {{/input-or-display}}
-      </div>
-
-      <div class="col span-6">
-        <label class="acc-label">
-          {{t 'clusterNew.oracleoke.userFingerprint.label'}}{{field-required}}
-        </label>
-        {{#input-or-display editable=(or isNew editing) value=config.fingerprint}}
-          {{input type="text" name="fingerprint" classNames="form-control" placeholder=(t 'clusterNew.oracleoke.userFingerprint.placeholder') value=config.fingerprint}}
-        {{/input-or-display}}
-      </div>
-
-      <div class="col span-6">
-        <label class="acc-label">
-          {{t 'clusterNew.oracleoke.secretKeyPassphrase.label'}}
-        </label>
-        {{#input-or-display editable=(or isNew editing) value=config.privateKeyPassphrase}}
-          {{input type="password" name="password" classNames="form-control" concealValue=true placeholder=(t 'clusterNew.oracleoke.secretKeyPassphrase.placeholder') value=config.privateKeyPassphrase}}
-        {{/input-or-display}}
-      </div>
-
-    </div>
-    <div class="row">
-
-      <div class="col span-6">
-        <label class="acc-label pt-5">{{t "clusterNew.oracleoke.secretKey.label"}}{{field-required}}</label>
-      </div>
-      {{input-text-file
-        classNames="box"
-        value=config.privateKeyContents
-        multiple=False
-        canChangeName=false
-        accept="text/plain,.pem,.pkey,.key"
-        minHeight=40
-        placeholder="clusterNew.oracleoke.secretKey.placeholder"
-        shouldChangeName=false
-        concealValue=true
-      }}
-
-    </div>
   {{/accordion-list-item}}
 
   {{!-- authenticate to OCI --}}
@@ -172,40 +121,48 @@
       }}
         <div class="row">
           <div class="col span-4 mb-0">
-            <label class="acc-label">
-              {{t 'clusterNew.oracleoke.region.label'}}
-            </label>
-            {{#if (eq step 2)}}
-              <select class="form-control" onchange={{action (mut config.region) value="target.value"}}>
-                {{#each regions as |choice|}}
-                  <option value={{choice}} selected={{eq config.region choice}}>{{choice}}</option>
-                {{/each}}
-              </select>
-            {{else}}
-              <div>{{config.region}}</div>
-            {{/if}}
+            <label class="acc-label">{{t 'clusterNew.oracleoke.region.label'}}{{field-required}}</label>
+            {{#input-or-display value=selectedRegion}}
+              {{searchable-select class="form-control"
+                                  content=regionChoices
+                                  value=config.region
+                                  placeholder=(t "nodeDriver.oci.region.placeholder")
+              }}
+            {{/input-or-display}}
           </div>
-          <div class="col span-4 mb-0">
+
+
+          <div class="col span-6">
             <label class="acc-label">
-              {{t 'clusterNew.oracleoke.version.label'}}
+              {{t 'clusterNew.oracleoke.compartmentOCID.label'}}{{field-required}}
             </label>
-            {{#if (eq step 2)}}
-              <select class="form-control" onchange={{action (mut config.kubernetesVersion) value="target.value"}}>
-                <option>  </option>
-                {{#each okeVersions as |choice|}}
-                  <option value={{choice}} selected={{eq config.kubernetesVersion choice}}>{{choice}}</option>
-                {{/each}}
-              </select>
-            {{else}}
-              <div>{{config.kubernetesVersion}}</div>
-            {{/if}}
+            {{#input-or-display editable=isNew value=config.compartmentId}}
+              {{input type="text" name="compartment" classNames="form-control" placeholder=(t 'clusterNew.oracleoke.compartmentOCID.placeholder') value=config.compartmentId}}
+            {{/input-or-display}}
+          </div>
+
+        </div>
+
+
+
+        <div class="row">
+
+          <div class="col span-4 mb-0">
+            <label class="acc-label">{{t 'clusterNew.oracleoke.version.label'}}{{field-required}}</label>
+            {{#input-or-display value=selectedKubernetesVersion}}
+              {{searchable-select class="form-control"
+                                  content=kubernetesVersionChoices
+                                  value=config.kubernetesVersion
+                                  placeholder=(t "nodeDriver.oci.region.placeholder")
+              }}
+            {{/input-or-display}}
           </div>
 
           <div class="col span-4 mb-0">
             <label class="acc-label">
               {{t 'clusterNew.oracleoke.quantityPerSubnet.label'}}
             </label>
-            {{#input-or-display editable=(and (eq step 2) isNew) value=config.quantityPerSubnet}}
+            {{#input-or-display editable=isNew value=config.quantityPerSubnet}}
               {{input-integer min=1 max=maxNodeCount value=config.quantityPerSubnet classNames="form-control" placeholder=(t 'clusterNew.oracleoke.quantityPerSubnet.placeholder')}}
               <p class="help-block">
                 {{t 'clusterNew.oracleoke.quantityPerSubnet.help'}}
@@ -214,6 +171,8 @@
           </div>
 
         </div>
+
+
       {{/accordion-list-item}}
       {{#if (eq step 2)}}
         {{save-cancel editing=(eq mode 'edit')
@@ -361,27 +320,27 @@
                 {{t 'clusterNew.oracleoke.nodeShape.label'}}{{field-required}}
               </label>
               {{#if (eq step 4)}}
-                <select class="form-control" onchange={{action (mut config.nodeShape) value="target.value"}}>
-                  {{#each nodeShapes as |choice|}}
-                    <option value={{choice}} selected={{eq config.nodeShape choice}}>{{choice}}</option>
-                  {{/each}}
-                </select>
+                {{#input-or-display value=selectedNodeShape}}
+                  {{searchable-select class="form-control"
+                                      content=nodeShapeChoices
+                                      value=config.nodeShape
+                  }}
+                {{/input-or-display}}
               {{else}}
                 <div>{{config.nodeShape}}</div>
               {{/if}}
             </div>
-
             <div class="col span-6">
               <label class="acc-label">
                 {{t 'clusterNew.oracleoke.os.label'}}
               </label>
               {{#if (eq step 4)}}
-                <select class="form-control" onchange={{action (mut config.nodeImage) value="target.value"}}>
-                  <option>  </option>
-                  {{#each nodeImages as |choice|}}
-                    <option value={{choice}} selected={{eq config.nodeImage choice}}>{{choice}}</option>
-                  {{/each}}
-                </select>
+                {{#input-or-display value=selectedNodeImage}}
+                  {{searchable-select class="form-control"
+                                      content=nodeImageChoices
+                                      value=config.nodeImage
+                  }}
+                {{/input-or-display}}
               {{else}}
                 <div>{{ config.nodeImage}}</div>
               {{/if}}
